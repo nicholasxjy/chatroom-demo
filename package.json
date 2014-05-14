@@ -1,0 +1,27 @@
+{
+  "name": "chatroom-demo",
+  "version": "0.0.0",
+  "description": "learn from nodejs practice to make simple chatroom using socket.io and angularjs",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nicholasxjy/chatroom-demo.git"
+  },
+  "keywords": [
+    "socket.io",
+    "angularjs"
+  ],
+  "author": "nicholas",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nicholasxjy/chatroom-demo/issues"
+  },
+  "homepage": "https://github.com/nicholasxjy/chatroom-demo",
+  "dependencies": {
+    "express": "^4.2.0",
+    "socket.io": "^0.9.16"
+  }
+}
