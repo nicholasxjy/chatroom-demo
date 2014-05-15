@@ -9,9 +9,16 @@ app.use(function(req, res, next) {
 
 var io = require('socket.io').listen(app.listen(port));
 
+var messages = []; //store all messages
 io.sockets.on('connection', function(socket) {
-    console.log('new connection');
-    socket.emit('connected');
+	socket.on('getAllMessages', function(messages) {
+		socket.emit('allMessages', messages);
+	});
+    
+    socket.on('createNewMessage', function(message) {
+    	messages.push(message);
+    	io.sockets.on('messageAdd', message);
+    });
 });
 
 console.log('chat room is on ' + port);
