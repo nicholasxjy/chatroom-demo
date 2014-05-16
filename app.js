@@ -11,13 +11,13 @@ var io = require('socket.io').listen(app.listen(port));
 
 var messages = []; //store all messages
 io.sockets.on('connection', function(socket) {
-	socket.on('getAllMessages', function(messages) {
+	socket.on('allMessages', function() {
 		socket.emit('allMessages', messages);
 	});
     
     socket.on('createNewMessage', function(message) {
     	messages.push(message);
-    	io.sockets.on('messageAdd', message);
+    	io.sockets.emit('messageAdd', message);
     });
 });
 
