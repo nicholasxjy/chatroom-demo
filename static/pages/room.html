@@ -1,0 +1,17 @@
+<div class="col-md-12">
+     <div class="panel panel-default room" ng-controller="RoomCtrl">
+         <div class="panel-heading room-header">Chat Room Demo</div>
+         <div class="panel-body room-content">
+             <div class="messages" auto-scroll-to-bottom>
+                 <div class="list-group" ng-repeat="message in messages">
+                 某某: {{message}}
+                 </div>
+             </div>
+             <form ng-controller="MessageCreateCtrl">
+                 <div class="form-group">
+                     <textarea class="form-control message-input" required placeholder="ctrl enter to send message" ng-model="newMessage" ctrl-enter-break-line="createMessage()"></textarea>
+                 </div>
+             </form>
+         </div>
+     </div>
+</div>

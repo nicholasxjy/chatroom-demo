@@ -22,6 +22,7 @@
   "homepage": "https://github.com/nicholasxjy/chatroom-demo",
   "dependencies": {
     "express": "^4.2.0",
-    "socket.io": "^0.9.16"
+    "socket.io": "^0.9.16",
+    "mongoose": "^3.8.9"
   }
 }

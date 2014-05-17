@@ -1,4 +1,8 @@
 .messages {
 	height: 400px;
-	overflow-y: auto; 
+	overflow-y: auto;
+}
+body {
+    background: url(../../image/backgroud_03.jpg) no-repeat center center;
+    background-size: cover;
 }
