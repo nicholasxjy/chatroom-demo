@@ -1,15 +1,24 @@
 var express = require('express');
-var controllers = require('./controllers');
+var controllers = require('./controllers/user');
 
 var app = express();
 var port = process.env.PORT || 3000;
+
+var parseSignedCookie = require('connect').utils.parseSignedCookie;
+var MongoStore = require('connect-mongo')(express);
+var Cookie = require('cookie');
+var sessionStore = new MongoStore({
+    url: 'mongodb://localhost/chatroom'
+});
+
 app.use(express.bodyParser());
 app.use(express.cookieParser());
 app.use(express.session({
     secret: 'chatroom',
     cookite: {
         maxAge: 60*1000
-    }
+    },
+    store: sessionStore
 }));
 app.use(express.static(__dirname + '/static'));
 
@@ -55,6 +64,27 @@ app.get('api/logout', function(req, res) {
 
 var io = require('socket.io').listen(app.listen(port));
 
+io.set('authorization', function(handshakeData, accept) {
+    handshakeData.cookie = Cookie.parse(handshakeData.headers.cookie);
+    var connectSid = handshakeData.cookie['connect.sid'];
+    connectSid = parseSignedCookie(connectSid, 'chatroom');
+    if (connectSid) {
+        sessionStore.get(connectSid, function(error, session) {
+            if (error) {
+                accept(error.message, false);
+            } else {
+                handshakeData.session = session;
+                if (session._userId) {
+                    accept(null, true);
+                } else {
+                    accept('No, login');
+                }
+            }
+        })
+    } else {
+        accept('No session');
+    }
+})
 var messages = []; //store all messages
 io.sockets.on('connection', function(socket) {
 	socket.on('allMessages', function() {

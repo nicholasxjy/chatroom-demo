@@ -4,7 +4,8 @@
          <div class="panel-body room-content">
              <div class="messages" auto-scroll-to-bottom>
                  <div class="list-group" ng-repeat="message in messages">
-                 某某: {{message}}
+                    <img ng-src="{{message.creator.avatarUrl}}" title="{{message.creator.name}}" class="img-rounded">
+                 {{message.creator.name}}: {{message.message}}
                  </div>
              </div>
              <form ng-controller="MessageCreateCtrl">
