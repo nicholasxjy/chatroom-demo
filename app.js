@@ -49,6 +49,13 @@ app.post('api/login', function(req, res) {
                 res.json(500, {msg: err});
             } else {
                 req.session._userId = user._id;
+                controllers.User.online(user._id, function(err, user) {
+                    if (err) {
+                        res.json(500, {msg: err});
+                    } else {
+                        res.json(user);
+                    }
+                });
                 res.json(user);
             }
         });
@@ -58,7 +65,15 @@ app.post('api/login', function(req, res) {
 });
 
 app.get('api/logout', function(req, res) {
-    req.session._userId = null;
+    _userId = req.session._userId;
+    controllers.User.offline(_userId, function(err, user) {
+        if (err) {
+            res.json(500, {msg: err});
+        } else {
+            res.json(200);
+            delete req.session._userId;
+        }
+    })
     res.json(401);
 });
 
