@@ -102,9 +102,15 @@ io.set('authorization', function(handshakeData, accept) {
 })
 var messages = []; //store all messages
 io.sockets.on('connection', function(socket) {
-	socket.on('allMessages', function() {
-		socket.emit('allMessages', messages);
-	});
+    socket.on('getRoom', function() {
+        controllers.User.getOnlineUsers(function(err, users) {
+            if (err) {
+                socket.emit('err', {msg: err});
+            } else {
+                socket.emit('roomData', {users: users, messages: messages});
+            }
+        });
+    });
 
     socket.on('createNewMessage', function(message) {
     	messages.push(message);

@@ -38,3 +38,9 @@ exports.offline = function(_userId, callback) {
         _id: _userId
     }, {$set: {online: false}}, callback);
 };
+
+exports.getOnlineUsers = function(callback) {
+    db.User.find({
+        online: true
+    }, callback);
+};
