@@ -102,6 +102,23 @@ io.set('authorization', function(handshakeData, accept) {
 })
 var messages = []; //store all messages
 io.sockets.on('connection', function(socket) {
+    _userId = socket.handshake.session._userId;
+    controllers.User.online(_userId, function(err, user) {
+        if (err) {
+            socket.emit('err', {msg: err});
+        } else {
+            socket.broadcast.emit('online', user);
+        }
+    });
+    socket.on('disconnect', function() {
+        controllers.User.offline(_userId, function(err, user) {
+            if (err) {
+                socket.emit('err', {msg: err});
+            } else {
+                socket.broadcast.emit('offline', user);
+            }
+        });
+    });
     socket.on('getRoom', function() {
         controllers.User.getOnlineUsers(function(err, users) {
             if (err) {
