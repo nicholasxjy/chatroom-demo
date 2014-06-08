@@ -80,6 +80,9 @@ app.get('api/logout', function(req, res) {
 
 var io = require('socket.io').listen(app.listen(port));
 
+var SYSTEM = 'system info';
+
+
 io.set('authorization', function(handshakeData, accept) {
     handshakeData.cookie = Cookie.parse(handshakeData.headers.cookie);
     var connectSid = handshakeData.cookie['connect.sid'];
@@ -109,6 +112,11 @@ io.sockets.on('connection', function(socket) {
             socket.emit('err', {msg: err});
         } else {
             socket.broadcast.emit('online', user);
+            socket.broadcast.emit('messageAdd', {
+                content: user.name + '进入聊天室',
+                creator: SYSTEM,
+                createAt: new Date()
+            });
         }
     });
     socket.on('disconnect', function() {
@@ -117,6 +125,11 @@ io.sockets.on('connection', function(socket) {
                 socket.emit('err', {msg: err});
             } else {
                 socket.broadcast.emit('offline', user);
+                socket.broadcast.emit('messageAdd', {
+                    content: user.name + '离开了聊天室',
+                    creator: SYSTEM,
+                    createAt: new Date()
+                });
             }
         });
     });
