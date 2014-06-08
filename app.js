@@ -1,5 +1,6 @@
 var express = require('express');
 var controllers = require('./controllers/user');
+var async = require('async');
 
 var app = express();
 var port = process.env.PORT || 3000;
@@ -120,18 +121,34 @@ io.sockets.on('connection', function(socket) {
         });
     });
     socket.on('getRoom', function() {
-        controllers.User.getOnlineUsers(function(err, users) {
-            if (err) {
-                socket.emit('err', {msg: err});
-            } else {
-                socket.emit('roomData', {users: users, messages: messages});
+        async.parallel([
+            function(done) {
+                controllers.User.getOnlineUsers(done);
+            },
+            function(done) {
+                controllers.Messages.read(done);
+            }],
+            function(err, results) {
+                if (err) {
+                    socket.emit('err', {msg: err});
+                } else {
+                    socket.emit('roomData', {
+                        users: results[0],
+                        messages: results[1]
+                    });
+                }
             }
-        });
+        );
     });
 
     socket.on('createNewMessage', function(message) {
-    	messages.push(message);
-    	io.sockets.emit('messageAdd', message);
+        controllers.Message.create(function(err, message) {
+            if (err) {
+                socket.emit('err', {msg: err});
+            } else {
+                io.sockets.emit('messageAdd', message);
+            }
+        })
     });
 });
 
