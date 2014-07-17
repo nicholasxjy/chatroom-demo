@@ -1,6 +1,6 @@
 {
   "name": "chatroom-demo",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "learn from nodejs practice to make simple chatroom using socket.io and angularjs",
   "main": "app.js",
   "scripts": {
@@ -24,10 +24,11 @@
     "express": "^4.2.0",
     "socket.io": "^0.9.16",
     "mongoose": "^3.8.9",
-    "cookie": "^0.1.2",
     "connect-mongo": "^0.4.1",
     "gravatar": "^1.0.6",
     "async": "^0.9.0",
-    "connect": "^2.16.2"
+    "body-parser": "*",
+    "express-session": "*",
+    "cookie-parser": "*"
   }
 }

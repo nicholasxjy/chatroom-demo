@@ -1,168 +1,17 @@
 var express = require('express');
-var controllers = require('./controllers/user');
-var async = require('async');
 
 var app = express();
-var port = process.env.PORT || 3000;
+var port = process.env.port || 3000;
 
-var parseSignedCookie = require('connect').utils.parseSignedCookie;
-var MongoStore = require('connect-mongo')(express);
-var Cookie = require('cookie');
-var sessionStore = new MongoStore({
-    url: 'mongodb://localhost/chatroom'
-});
-
-app.use(express.bodyParser());
-app.use(express.cookieParser());
-app.use(express.session({
-    secret: 'chatroom',
-    cookite: {
-        maxAge: 60*1000
-    },
-    store: sessionStore
-}));
 app.use(express.static(__dirname + '/static'));
-
-app.use(function(req, res, next) {
-    res.sendfile('static/index.html');
-});
-
-app.get('api/validate', function(req, res) {
-    _userId = req.session._userId;
-    if (_userId) {
-        controllers.User.findUserById(_userId, function(err, user) {
-            if (err) {
-                res.json(401, {msg: err});
-            } else {
-                res.json(user);
-            }
-        });
-    } else {
-        res.json(401, null);
-    }
-});
-
-app.post('api/login', function(req, res) {
-    email = req.body.email;
-    if (email) {
-        controllers.User.findByEmailOrCreate(email, function(err, user) {
-            if (err) {
-                res.json(500, {msg: err});
-            } else {
-                req.session._userId = user._id;
-                controllers.User.online(user._id, function(err, user) {
-                    if (err) {
-                        res.json(500, {msg: err});
-                    } else {
-                        res.json(user);
-                    }
-                });
-                res.json(user);
-            }
-        });
-    } else {
-        res.json(403);
-    }
-});
-
-app.get('api/logout', function(req, res) {
-    _userId = req.session._userId;
-    controllers.User.offline(_userId, function(err, user) {
-        if (err) {
-            res.json(500, {msg: err});
-        } else {
-            res.json(200);
-            delete req.session._userId;
-        }
-    })
-    res.json(401);
+app.use(function(req, res) {
+    res.sendFile('./static/index.html');
 });
 
 var io = require('socket.io').listen(app.listen(port));
 
-var SYSTEM = 'system info';
-
-
-io.set('authorization', function(handshakeData, accept) {
-    handshakeData.cookie = Cookie.parse(handshakeData.headers.cookie);
-    var connectSid = handshakeData.cookie['connect.sid'];
-    connectSid = parseSignedCookie(connectSid, 'chatroom');
-    if (connectSid) {
-        sessionStore.get(connectSid, function(error, session) {
-            if (error) {
-                accept(error.message, false);
-            } else {
-                handshakeData.session = session;
-                if (session._userId) {
-                    accept(null, true);
-                } else {
-                    accept('No, login');
-                }
-            }
-        })
-    } else {
-        accept('No session');
-    }
-})
-var messages = []; //store all messages
 io.sockets.on('connection', function(socket) {
-    _userId = socket.handshake.session._userId;
-    controllers.User.online(_userId, function(err, user) {
-        if (err) {
-            socket.emit('err', {msg: err});
-        } else {
-            socket.broadcast.emit('online', user);
-            socket.broadcast.emit('messageAdd', {
-                content: user.name + '进入聊天室',
-                creator: SYSTEM,
-                createAt: new Date()
-            });
-        }
-    });
-    socket.on('disconnect', function() {
-        controllers.User.offline(_userId, function(err, user) {
-            if (err) {
-                socket.emit('err', {msg: err});
-            } else {
-                socket.broadcast.emit('offline', user);
-                socket.broadcast.emit('messageAdd', {
-                    content: user.name + '离开了聊天室',
-                    creator: SYSTEM,
-                    createAt: new Date()
-                });
-            }
-        });
-    });
-    socket.on('getRoom', function() {
-        async.parallel([
-            function(done) {
-                controllers.User.getOnlineUsers(done);
-            },
-            function(done) {
-                controllers.Messages.read(done);
-            }],
-            function(err, results) {
-                if (err) {
-                    socket.emit('err', {msg: err});
-                } else {
-                    socket.emit('roomData', {
-                        users: results[0],
-                        messages: results[1]
-                    });
-                }
-            }
-        );
-    });
-
-    socket.on('createNewMessage', function(message) {
-        controllers.Message.create(function(err, message) {
-            if (err) {
-                socket.emit('err', {msg: err});
-            } else {
-                io.sockets.emit('messageAdd', message);
-            }
-        })
-    });
+    socket.emit('connected');
 });
 
-console.log('chat room is on ' + port);
+console.log('The server is listening on port ' + port);
