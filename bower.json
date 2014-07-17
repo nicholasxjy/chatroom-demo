@@ -1,13 +1,13 @@
 {
   "name": "socket.io-demo",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "homepage": "https://github.com/nicholasxjy/chatroom-demo",
   "authors": [
     "nicholasxjy <yitaqi2011@gmail.com>"
   ],
-  "description": "socket.io chatroom bootstrap angularjs",
+  "description": "angular bootstrap",
   "keywords": [
-    "angularjs",
+    "angular",
     "bootstrap"
   ],
   "license": "MIT",
@@ -16,12 +16,12 @@
     "**/.*",
     "node_modules",
     "bower_components",
+    "static/commponents",
     "test",
     "tests"
   ],
   "dependencies": {
-    "bootstrap": "~3.1.1",
-    "angular": "~1.2.16",
-    "angular-route": "~1.2.16"
+    "bootstrap": "~3.2.0",
+    "angular": "~1.2.20"
   }
 }
