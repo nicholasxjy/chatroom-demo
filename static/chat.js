@@ -1,87 +1,33 @@
-var app = angular.module('chatApp');
+var app = angular.module('chatApp', ['ngRoute']);
 
-app.factory('socket', function($rootScope){
-    var socket = io.connect('/');
-    return {
-        on: function(eventName, callback) {
-            socket.on(eventName, function() {
-                var args = arguments;
-                $rootScope.$apply(function() {
-                    callback.apply(socket, args);
-                });
-            });
-        },
+app.config(function($routeProvider, $locationProvider) {
+    $locationProvider.html5Mode(true);
 
-        emit: function(eventName, data, callback) {
-            socket.emit(eventName, data, function() {
-                var args = arguments;
-                $rootScope.$apply(function() {
-                    if (callback) {
-                        callback.apply(socket, args);
-                    }
-                });
-            });
-        }
-    };
-});
-
-app.controller('RoomCtrl', function($scope, socket){
-    $scope.messages = [];
-    socket.emit('getAllMessages');
-    socket.on('allMessages', function(messages) {
-        $scope.messages = messages;
-    });
-
-    socket.on('messageAdd', function(message) {
-        $scope.messages.push(message);
+    $routeProvider.when('/', {
+        templateUrl: '/pages/room.html',
+        controller: 'RoomCtrl'
+    })
+    .when('/login', {
+        templateUrl: '/pages/login.html',
+        controller: 'LoginCtrl'
+    })
+    .otherwise({
+        redirectTo: '/login'
     });
 });
 
-app.controller('MessageCreatorCtrl', function($scope, socket) {
-    $scope.newMessage = '';
-    $scope.createMessage = function() {
-        if ($scope.newMessage == '') {
-            return;
-        }
-        socket.emit('createMessage', $scope.newMessage);
-        $scope.newMessage = '';
-    }
-});
+app.run(function($window, $rootScope, $http, $location) {
+    $http({
+        url: '/api/validate',
+        method: 'GET'
+    }).success(function(user) {
+        $rootScope.me = user;
+        $location.path('/');
+    }).error(function(data) {
+        $location.path('/login');
+    });
+})
 
-app.directive('autoScrollToBottom', function() {
-    return {
-        link: function(scope, element, attrs) {
-            scope.$watch(function() {
-                return element.children.length;
-            }, function() {
-                element.animate({
-                    scrollTop: element.prop('scrollHeight')
-                }, 1000);
-            })
-        }
-    }
-});
 
-app.directive('ctrlEnterBreakLine', function() {
-    return function(scope, element, attrs) {
-        var ctrlDown = false;
-        element.bind('keyDown', function(evt) {
-            if (evt.which == 17) {
-                ctrlDown = true;
-                setTimeOut(function() {
-                    ctrlDown = false;
-                }, 1000);
-            }
-            if (evt.which == 13) {
-                if (ctrlDown) {
-                    element.val(element.val() + '\n');
-                } else {
-                    scope.$apply(function() {
-                        scope.$eval(attrs.ctrlEnterBreakLine);
-                    });
-                    evt.preventDefault();
-                }
-            }
-        });
-    }
-});
+
+

@@ -1,24 +1,26 @@
-angular.module('chatApp', []);
-angular.module('chatApp').factory('socket', function($rootScope) {
+var app = angular.module('chatApp');
+
+app.factory('socket', function($rootScope){
     var socket = io.connect('/');
     return {
-        on: function(eventname, callback) {
-            socket.on(eventname, function() {
-                var arg = arguments;
+        on: function(eventName, callback) {
+            socket.on(eventName, function() {
+                var args = arguments;
                 $rootScope.$apply(function() {
-                    callback.apply(socket, arg);
+                    callback.apply(socket, args);
                 });
             });
         },
-        emit: function(eventname, data, callback) {
-            socket.emit(eventname, data, function() {
-                var arg = arguments;
+
+        emit: function(eventName, data, callback) {
+            socket.emit(eventName, data, function() {
+                var args = arguments;
                 $rootScope.$apply(function() {
                     if (callback) {
-                        callback.apply(socket, arg);
+                        callback.apply(socket, args);
                     }
                 });
             });
         }
-    }
+    };
 });
