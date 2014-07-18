@@ -4,6 +4,12 @@ var cookitParser = require('cookie-parser');
 var session = require('express-session');
 var MongoStore = require('connect-mongo')(session);
 var Userctrl = require('./controllers/user');
+var parseSignedCookie = require('connect').utils.parseSignedCookie;
+var Cookie = require('cookie');
+
+var sessionStore = new MongoStore({
+    db: 'chatroom'
+});
 
 var app = express();
 var port = process.env.port || 3000;
@@ -16,9 +22,7 @@ app.use(session({
     cookit: {
         maxAge: 60*1000
     },
-    store: new MongoStore({
-        db: 'chatroom'
-    })
+    store: sessionStore
 }));
 app.use(express.static(__dirname + '/static'));
 app.use(function(req, res) {
@@ -59,17 +63,24 @@ app.get('/api/logout', function(req, res) {
 
 var io = require('socket.io').listen(app.listen(port));
 
+io.set('authorization', function(handshakeData, accept) {
+    handshakeData.cookie = Cookie.parse(handshakeData.header.cookie);
+    var connectSid = handshakeData.cookie['connect.sid'];
+    connectSid = parseSignedCookie(connectSid, 'chatroom');
 
-var messages = [];
-io.sockets.on('connection', function(socket) {
-    socket.on('getAllMessages', function() {
-        socket.emit('allMessages', messages);
-    });
-
-    socket.on('createMessage', function(message) {
-        messages.push(message);
-        io.sockets.emit('messageAdd', message);
-    });
-});
+    if (connectSid) {
+        sessionStore.get(connectSid, function(err, session) {
+            if (err) accept(err.message, false);
+            handshakeData.session = session;
+            if (session._userId) {
+                accept(null, true);
+            } else {
+                accept('No login');
+            }
+        });
+    } else {
+        accept('No session');
+    }
+})
 
 console.log('The server is listening on port ' + port);
