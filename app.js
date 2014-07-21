@@ -41,13 +41,16 @@ app.get('/api/validate', function(req, res) {
     }
 });
 
-app.post('/api/validate', function(req, res) {
+app.post('/api/login', function(req, res) {
     email = req.body.email;
     if (email) {
         Userctrl.findByEmailOrCreate(email, function(err, user) {
             if (err) return res.json(500, {msg: err});
             req.session._userId = user._id;
-            return res.json(user);
+            Userctrl.online(user._id, function(err, user) {
+                if (err) return res.json(500, {msg: err});
+                return res.json(user);
+            });
         });
     } else {
         return res.json(403);
@@ -56,8 +59,12 @@ app.post('/api/validate', function(req, res) {
 });
 
 app.get('/api/logout', function(req, res) {
-    req.session._userId = null;
-    return res.json(401);
+    _userId = req.session._userId;
+    Userctrl.offline(_userId, function(err, user) {
+        if (err) return res.json(500, {msg: err});
+        return res.json(200);
+        delete req.session._userId;
+    });
 });
 
 
